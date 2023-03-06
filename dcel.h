@@ -62,6 +62,7 @@ class DCEL {
         void removeEdge(Edge &e1);
         void addVertex(Vertex &v);
         void removeVertex(Vertex &v);
+        bool isInteriorPoint(Vertex &p);
 };
 
 DCEL::DCEL() {
@@ -161,15 +162,23 @@ will remove the vertex v as well as all the edges associated with it
 void DCEL::removeVertex(Vertex &v)
 {
     for(auto e:v.inc_edges)
-    {
-        edges.erase(e);
-        edges.erase(e->twin);
-        free(e);
-        free(e->twin);
-
-    }
+        removeEdge(*e);
 
     vertices.erase(&v);
 
     free(&v);
+}
+
+/*
+For a closed polygon, function will tell if give point is an interior point of the DCEL
+*/
+bool DCEL::isInteriorPoint(Vertex &p)
+{
+    int count = 0;
+    for(auto e:edges)
+        if((p.y < e->org->y != p.y < e->dest->y) && 
+        (p.x < (e->dest->x-e->org->x) * (p.y-e->org->y) / (e->dest->y-e->org->y) + e->org->x))
+            count++;
+
+    return count%2 == 1;
 }
