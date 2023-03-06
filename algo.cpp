@@ -47,6 +47,13 @@ void initialize_dcel()
 int main()
 {
     initialize_dcel();
+    cout<<"done initialize"<<endl;
+    int count = 0;
+    for(auto v:p.vertices)
+        cout<<v.x<<endl;
+    cout<<p.edges.size()<<endl;
+    for(int f=58;f<p.edges.size();f+=2)
+        cout<<count++<<" "<<p.edges[f].prev->next->org->x<<endl;
     vector<DCEL> convex_polygons;
 
     while(p.vertices.size()>3)
@@ -60,43 +67,6 @@ int main()
 
         Edge* last_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL);
 
-        p_cursor = p_cursor->next;
-        Vertex next_vertex = *p_cursor->dest;
-
-        while(l.n<p.n && p_cursor != NULL &&
-            isReflexAngle(l.vertices[l.n-2], l.vertices[l.n-1], next_vertex) &&
-            isReflexAngle(l.vertices[l.n-1], next_vertex, l.vertices[0]) && 
-            isReflexAngle(next_vertex, l.vertices[0], l.vertices[1]))
-        {
-            l.addVertex(next_vertex);
-            last_edge = l.addEdge(p_cursor->org, p_cursor->dest, last_edge, NULL);
-            p_cursor = p_cursor->next;
-            next_vertex = *p_cursor->dest;
-        }
-
-        p_cursor = p_cursor->prev;
-        l.addEdge(&l.vertices[l.n-1], &l.vertices[0], p_cursor, p_start);
-
-        if(l.n<p.n)
-        {
-            vector<Vertex> interiors;
-            for(Vertex v:p.vertices)
-                if(l.findVertexIndex(v) == -1 && l.isInteriorPoint(v) == true)
-                    interiors.push_back(v);
-
-            while(!interiors.empty())
-            {
-                l.removeVertex(l.vertices[l.n-1]);
-                p_cursor = p_cursor->prev;
-                last_edge = l.addEdge(&l.vertices[l.n-1], &l.vertices[0], p_cursor, p_start);
-                for(int i=interiors.size()-1;i>=0;i--)
-                    if(!l.isInteriorPoint(interiors[i]))
-                        interiors.erase(interiors.begin() + i);
-            }
-            p.remove(l, p_cursor->next, p_start->prev);
-        }
-
-        convex_polygons.push_back(l);
     }
 
 }

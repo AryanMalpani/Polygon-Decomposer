@@ -59,7 +59,7 @@ class DCEL {
         DCEL();
         Edge* addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next);
         void removeEdge(Edge* e1);
-        void addVertex(Vertex &v);
+        Vertex* addVertex(Vertex &v);
         void removeVertex(Vertex &v);
         bool isInteriorPoint(Vertex &p);
         void remove(DCEL &l, Edge* before_start, Edge* before_end);
@@ -83,8 +83,8 @@ pass NULL values if prev or next not known
 Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
 {
     //insert vertices if not already present
-    addVertex(*v1);
-    addVertex(*v2);
+    v1 = addVertex(*v1);
+    v2 = addVertex(*v2);
 
     //check if edges already exist
     for(int i=0;i<edges.size();i++)
@@ -94,32 +94,37 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
     Edge e1 = Edge(NULL, NULL, NULL, v1, v2);
     Edge e2 = Edge(NULL, NULL, NULL, v2, v1);
 
-    e1.twin = &e2;
-    e2.twin = &e1;
+    edges.push_back(e1);
+    edges.push_back(e2);
 
-    v1->inc_edges.insert(&e1);
-    v2->inc_edges.insert(&e2);
+    Edge* e1p = &edges[edges.size()-2];
+    Edge* e2p = &edges[edges.size()-1];
+
+    e1p->twin = e2p;
+    e2p->twin = e1p;
+
+    v1->inc_edges.insert(e1p);
+    v2->inc_edges.insert(e2p);
 
     if(e1prev != NULL)
     {
-        e1.prev = e1prev;
-        e2.next = e1prev->twin;
-        e1prev->next = &e1;
-        e1prev->twin->prev = &e2;
+        e1p->prev = e1prev;
+        e2p->next = e1prev->twin;
+        e1prev->next = e1p;
+        e1prev->twin->prev = e2p;
+        cout<<e1p->prev->next->org->x<<endl;
     }
 
     if(e1next != NULL)
     {
-        e1.next = e1next;
-        e2.prev = e1next->twin;
-        e1next->prev = &e1;
-        e1next->twin->next = &e2;
+        e1p->next = e1next;
+        e2p->prev = e1next->twin;
+        e1next->prev = e1p;
+        e1next->twin->next = e2p;
+        cout<<"e1next";
     }
 
-    edges.push_back(e1);
-    edges.push_back(e2);
-
-    return &edges[edges.size()-2];
+    return e1p;
 }
 
 /*
@@ -153,14 +158,16 @@ void DCEL::removeEdge(Edge* e1)
 /*
 will add vertex v to the DCEL
 */
-void DCEL::addVertex(Vertex &v)
+Vertex* DCEL::addVertex(Vertex &v)
 {
     int i = findVertexIndex(v);
-    if(i==-1)
-        return ;
+    if(i!=-1)
+        return &vertices[i];
 
     vertices.push_back(v);
     n++;
+
+    return &vertices[vertices.size()-1];
 }
 
 /*
