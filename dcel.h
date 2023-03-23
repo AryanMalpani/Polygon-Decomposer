@@ -4,6 +4,7 @@ using namespace std;
 
 class Edge;
 
+
 /*
     Class For Vertices
 */
@@ -19,6 +20,11 @@ class Vertex{
 Vertex::Vertex(float x_value, float y_value) {
     x = x_value;
     y = y_value;
+}
+
+bool operator==(Vertex const& c1, Vertex const& c2)
+{
+    return (c1.x==c2.x)&&(c1.y==c2.y);
 }
 
 
@@ -52,7 +58,7 @@ Edge::Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destin
 class DCEL {
     public:
         list<Edge> edges;
-        vector<Vertex> vertices;
+        list<Vertex> vertices;
         int n;
 
     public:
@@ -64,7 +70,7 @@ class DCEL {
         bool isInteriorPoint(Vertex &p);
         void remove(DCEL &l, Edge* before_start, Edge* before_end);
         Vertex* findVertex(Vertex &v);
-        int findVertexIndex(Vertex& v);
+        Vertex* findVertexByIndex(int i);
 };
 
 DCEL::DCEL() {
@@ -162,14 +168,14 @@ will add vertex v to the DCEL
 */
 Vertex* DCEL::addVertex(Vertex &v)
 {
-    int i = findVertexIndex(v);
-    if(i!=-1)
-        return &vertices[i];
+    Vertex* i = findVertex(v);
+    if(i!=NULL)
+        return i;
 
     vertices.push_back(v);
     n++;
 
-    return &vertices[vertices.size()-1];
+    return &(*(--vertices.end()));
 }
 
 /*
@@ -177,16 +183,14 @@ will remove the vertex v as well as all the edges associated with it
 */
 void DCEL::removeVertex(Vertex &v)
 {
-    for(auto e:v.inc_edges)
-        removeEdge(e);
-
-    int i = findVertexIndex(v);
-    if(i==-1)
-        return ;
-
-    vertices.erase(vertices.begin() + i);
-
-    n--;
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(*it==v)
+        {
+            vertices.erase(it);
+            for(auto e:it->inc_edges)
+                removeEdge(e);
+            n--;
+        }
 }
 
 /*
@@ -213,20 +217,19 @@ void DCEL::remove(DCEL &l, Edge* before_start, Edge* after_end)
 
 Vertex* DCEL::findVertex(Vertex& v)
 {
-    int i;
-    for(i=0;i<vertices.size();i++)
-        if(vertices[i].x==v.x && vertices[i].y==v.y)
-            break;
-    
-    return i==vertices.size()?NULL:&vertices[i];    
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(*it==v)
+            return &(*it);
+
+    return NULL;    
 }
 
-int DCEL::findVertexIndex(Vertex& v)
+Vertex* DCEL::findVertexByIndex(int i)
 {
-    int i;
-    for(i=0;i<vertices.size();i++)
-        if(vertices[i].x==v.x && vertices[i].y==v.y)
-            break;
-    
-    return i==vertices.size()?-1:i;    
+    int count=0;
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(count++ == i)
+            return &(*it);
+
+    return NULL;
 }

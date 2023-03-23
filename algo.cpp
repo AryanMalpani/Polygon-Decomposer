@@ -32,11 +32,11 @@ void initialize_dcel()
     int org, dest;
     edges_file >> org;
     edges_file >> dest;
-    p.addEdge(&p.vertices[org-1], &p.vertices[dest-1], NULL, NULL);
+    p.addEdge(p.findVertexByIndex(org-1), p.findVertexByIndex(dest-1), NULL, NULL);
     while (edges_file >> org)
     {
         edges_file >> dest;
-        cout<<p.addEdge(&p.vertices[org-1], &p.vertices[dest-1], &(*(----p.edges.end())), NULL)<<endl;
+        cout<<p.addEdge(p.findVertexByIndex(org-1), p.findVertexByIndex(dest-1), &(*(----p.edges.end())), NULL)<<endl;
         cout<<&(*(----p.edges.end()))<<endl;
     }
     (*(----p.edges.end())).next = &(*(p.edges.begin()));
@@ -54,7 +54,10 @@ int main()
         cout<<v.x<<endl;
     cout<<p.edges.size()<<endl;
     for(auto it=p.edges.begin(); it!=p.edges.end();it++)
-        cout<<count++<<" "<<&*it<<" "<<it->twin<<" "<<it->prev<<endl;
+    {
+        cout<<count<<" "<<&*it<<" "<<it->twin<<" "<<it->prev<<endl;
+        cout<<count++<<" "<<it->org->x<<" "<<it->twin->org->x<<" "<<it->prev->org->x<<endl;
+    }
     vector<DCEL> convex_polygons;
 
     // while(p.vertices.size()>3)
