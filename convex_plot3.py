@@ -5,8 +5,8 @@ def generatePoints(edgeInp,cordsInp):
     points = []
     edges = []
     to_plot = []
-    fv = open("edges.txt".format(edges = edgeInp), "r")
-    fc = open("cords.txt".format(cords = cordsInp), "r")
+    fv = open("dcel_edges.txt".format(edges = edgeInp), "r")
+    fc = open("dcel_cords.txt".format(cords = cordsInp), "r")
 
     fc_arr = fc.readlines()
 

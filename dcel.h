@@ -4,6 +4,7 @@ using namespace std;
 
 class Edge;
 
+
 /*
     Class For Vertices
 */
@@ -14,11 +15,22 @@ class Vertex{
 
         //constructor
         Vertex(float x_value, float y_value);
+        pair<float,float> pairup();
 };
 
 Vertex::Vertex(float x_value, float y_value) {
     x = x_value;
     y = y_value;
+}
+
+pair<float,float> Vertex::pairup()
+{
+    return make_pair(x,y);
+}
+
+bool operator==(Vertex const& c1, Vertex const& c2)
+{
+    return (c1.x==c2.x)&&(c1.y==c2.y);
 }
 
 
@@ -51,8 +63,8 @@ Edge::Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destin
 */
 class DCEL {
     public:
-        vector<Edge> edges;
-        vector<Vertex> vertices;
+        list<Edge> edges;
+        list<Vertex> vertices;
         int n;
 
     public:
@@ -64,7 +76,8 @@ class DCEL {
         bool isInteriorPoint(Vertex &p);
         void remove(DCEL &l, Edge* before_start, Edge* before_end);
         Vertex* findVertex(Vertex &v);
-        int findVertexIndex(Vertex& v);
+        Vertex* findVertexByIndex(int i);
+        void save();
 };
 
 DCEL::DCEL() {
@@ -87,9 +100,9 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
     v2 = addVertex(*v2);
 
     //check if edges already exist
-    for(int i=0;i<edges.size();i++)
-        if(edges[i].org == v1 && edges[i].dest == v2)
-            return &edges[i];
+    for(auto it=edges.begin(); it!=edges.end();it++)
+        if((*it).org == v1 && (*it).dest == v2)
+            return &(*it);
 
     Edge e1 = Edge(NULL, NULL, NULL, v1, v2);
     Edge e2 = Edge(NULL, NULL, NULL, v2, v1);
@@ -97,8 +110,8 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
     edges.push_back(e1);
     edges.push_back(e2);
 
-    Edge* e1p = &edges[edges.size()-2];
-    Edge* e2p = &edges[edges.size()-1];
+    Edge* e1p = &(*(----edges.end()));
+    Edge* e2p = &(*(--edges.end()));
 
     e1p->twin = e2p;
     e2p->twin = e1p;
@@ -112,7 +125,6 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
         e2p->next = e1prev->twin;
         e1prev->next = e1p;
         e1prev->twin->prev = e2p;
-        cout<<e1p->prev->next->org->x<<endl;
     }
 
     if(e1next != NULL)
@@ -121,7 +133,6 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
         e2p->prev = e1next->twin;
         e1next->prev = e1p;
         e1next->twin->next = e2p;
-        cout<<"e1next";
     }
 
     return e1p;
@@ -132,6 +143,7 @@ will remove the edge e1 as well as its twin
 */
 void DCEL::removeEdge(Edge* e1)
 {
+    cout<<"removing edge"<<endl;
     Edge *e2 = e1->twin;
 
     e1->org->inc_edges.erase(e1);
@@ -149,10 +161,26 @@ void DCEL::removeEdge(Edge* e1)
         e1->next->prev = NULL;
     }
 
-    for(int i=edges.size()-1;i>=0;i++)
-        if((edges[i].org==e1->org && edges[i].org==e1->dest)||
-            (edges[i].org==e2->org && edges[i].org==e2->dest))
-            edges.erase(edges.begin()+i);
+    cout<<"removing edge"<<endl;
+
+    for(auto it=edges.begin(); it!=edges.end();it++)
+        if((it->org==e1->org && it->dest==e1->dest)||
+            (it->org==e2->dest && it->org==e2->dest))
+            {
+                cout<<"reache here"<<endl;
+                edges.erase(it);
+                cout<<"reache here2"<<endl;
+                break;
+            }
+    for(auto it=edges.begin(); it!=edges.end();it++)
+        if((it->org==e1->org && it->dest==e1->dest)||
+            (it->org==e2->dest && it->org==e2->dest))
+            {
+                cout<<"reache here"<<endl;
+                edges.erase(it);
+                cout<<"reache here2"<<endl;
+                break;
+            }
 }
 
 /*
@@ -160,14 +188,14 @@ will add vertex v to the DCEL
 */
 Vertex* DCEL::addVertex(Vertex &v)
 {
-    int i = findVertexIndex(v);
-    if(i!=-1)
-        return &vertices[i];
+    Vertex* i = findVertex(v);
+    if(i!=NULL)
+        return i;
 
     vertices.push_back(v);
     n++;
 
-    return &vertices[vertices.size()-1];
+    return &(*(--vertices.end()));
 }
 
 /*
@@ -175,20 +203,23 @@ will remove the vertex v as well as all the edges associated with it
 */
 void DCEL::removeVertex(Vertex &v)
 {
-    for(auto e:v.inc_edges)
-        removeEdge(e);
-
-    int i = findVertexIndex(v);
-    if(i==-1)
-        return ;
-
-    vertices.erase(vertices.begin() + i);
-
-    n--;
+    cout<<v.x<<" "<<v.y<<endl;
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(*it==v)
+        {
+            auto dup = it->inc_edges;
+            for(auto e:dup)
+                removeEdge(e);
+            vertices.erase(it);
+            n--;
+            cout<<"vertices size "<<vertices.size()<<" n value "<<n<<endl;
+            break;
+        }
+    cout<<"done removing vertex"<<endl;
 }
 
 /*
-For a closed polygon, function will tell if give point is an interior point of the DCEL
+For a closed polygon, function will tell if given point is an interior point of the DCEL
 */
 bool DCEL::isInteriorPoint(Vertex &p)
 {
@@ -205,26 +236,47 @@ void DCEL::remove(DCEL &l, Edge* before_start, Edge* after_end)
 {
     addEdge(after_end->org, before_start->dest, after_end->prev, before_start->next);
 
-    for(Vertex v:l.vertices)
-        removeVertex(v);
+    for(auto it=l.vertices.begin();it!=l.vertices.end();it++)
+    {
+        cout<<"vertex to be removed"<<it->x<<" "<<it->y<<endl;
+        removeVertex(*it);
+    }
 }
 
 Vertex* DCEL::findVertex(Vertex& v)
 {
-    int i;
-    for(i=0;i<vertices.size();i++)
-        if(vertices[i].x==v.x && vertices[i].y==v.y)
-            break;
-    
-    return i==vertices.size()?NULL:&vertices[i];    
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(*it==v)
+            return &(*it);
+
+    return NULL;    
 }
 
-int DCEL::findVertexIndex(Vertex& v)
+Vertex* DCEL::findVertexByIndex(int i)
 {
-    int i;
-    for(i=0;i<vertices.size();i++)
-        if(vertices[i].x==v.x && vertices[i].y==v.y)
-            break;
-    
-    return i==vertices.size()?-1:i;    
+    int count=0;
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(count++ == i)
+            return &(*it);
+
+    return NULL;
+}
+
+void DCEL::save()
+{
+    ofstream cfile("dcel_cords.txt");
+    map<pair<float,float>, int> vertex_map;
+    int index=0;
+    for(auto v:vertices)
+    {
+        vertex_map[v.pairup()] = ++index;
+        cfile<<v.x<<" "<<v.y<<endl;
+    }
+    cfile.close();
+    cout<<"number of eedges "<<edges.size()<<endl;
+
+    ofstream efile("dcel_edges.txt");
+    for(auto it=edges.begin();it!=edges.end();it++)
+        efile<<vertex_map[(*(it->org)).pairup()]<<" "<<vertex_map[(*(it++->dest)).pairup()]<<endl;
+    efile.close();
 }
