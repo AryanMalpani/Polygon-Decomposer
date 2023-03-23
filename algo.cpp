@@ -36,13 +36,14 @@ void initialize_dcel()
     while (edges_file >> org)
     {
         edges_file >> dest;
-        p.addEdge(&p.vertices[org-1], &p.vertices[dest-1], &p.edges[p.edges.size()-2], NULL);
+        cout<<p.addEdge(&p.vertices[org-1], &p.vertices[dest-1], &(*(----p.edges.end())), NULL)<<endl;
+        cout<<&(*(----p.edges.end()))<<endl;
     }
-    p.edges[p.edges.size()-2].next = &p.edges[0];
-    p.edges[0].prev = &p.edges[p.edges.size()-2];
-    p.edges[p.edges.size()-2].twin->prev = p.edges[0].twin;
-    p.edges[0].twin->next = p.edges[p.edges.size()-2].twin;
-}    
+    (*(----p.edges.end())).next = &(*(p.edges.begin()));
+    (*(p.edges.begin())).prev = &(*(----p.edges.end()));
+    (*(----p.edges.end())).twin->prev = (*(p.edges.begin())).twin;
+    (*(p.edges.begin())).twin->next = (*(----p.edges.end())).twin;
+}
 
 int main()
 {
@@ -52,21 +53,21 @@ int main()
     for(auto v:p.vertices)
         cout<<v.x<<endl;
     cout<<p.edges.size()<<endl;
-    for(int f=58;f<p.edges.size();f+=2)
-        cout<<count++<<" "<<p.edges[f].prev->next->org->x<<endl;
+    for(auto it=p.edges.begin(); it!=p.edges.end();it++)
+        cout<<count++<<" "<<&*it<<" "<<it->twin<<" "<<it->prev<<endl;
     vector<DCEL> convex_polygons;
 
-    while(p.vertices.size()>3)
-    {
-        DCEL l;
-        Edge* p_start = &p.edges[0];
-        Edge* p_cursor = p_start;
+    // while(p.vertices.size()>3)
+    // {
+    //     DCEL l;
+    //     Edge* p_start = &p.edges[0];
+    //     Edge* p_cursor = p_start;
 
-        l.addVertex(*p_cursor->org);
-        l.addVertex(*p_cursor->dest);
+    //     l.addVertex(*p_cursor->org);
+    //     l.addVertex(*p_cursor->dest);
 
-        Edge* last_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL);
+    //     Edge* last_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL);
 
-    }
+    // }
 
 }

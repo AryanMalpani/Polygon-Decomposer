@@ -51,7 +51,7 @@ Edge::Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destin
 */
 class DCEL {
     public:
-        vector<Edge> edges;
+        list<Edge> edges;
         vector<Vertex> vertices;
         int n;
 
@@ -87,9 +87,9 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
     v2 = addVertex(*v2);
 
     //check if edges already exist
-    for(int i=0;i<edges.size();i++)
-        if(edges[i].org == v1 && edges[i].dest == v2)
-            return &edges[i];
+    for(auto it=edges.begin(); it!=edges.end();it++)
+        if((*it).org == v1 && (*it).dest == v2)
+            return &(*it);
 
     Edge e1 = Edge(NULL, NULL, NULL, v1, v2);
     Edge e2 = Edge(NULL, NULL, NULL, v2, v1);
@@ -97,8 +97,10 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
     edges.push_back(e1);
     edges.push_back(e2);
 
-    Edge* e1p = &edges[edges.size()-2];
-    Edge* e2p = &edges[edges.size()-1];
+    Edge* e1p = &(*(----edges.end()));
+    Edge* e2p = &(*(--edges.end()));
+
+    cout<<"og address "<<e1p<<" "<<e2p<<endl;
 
     e1p->twin = e2p;
     e2p->twin = e1p;
@@ -149,10 +151,10 @@ void DCEL::removeEdge(Edge* e1)
         e1->next->prev = NULL;
     }
 
-    for(int i=edges.size()-1;i>=0;i++)
-        if((edges[i].org==e1->org && edges[i].org==e1->dest)||
-            (edges[i].org==e2->org && edges[i].org==e2->dest))
-            edges.erase(edges.begin()+i);
+    for(auto it=--edges.end(); it!=--edges.begin();it--)
+        if((it->org==e1->org && it->org==e1->dest)||
+            (it->org==e2->org && it->org==e2->dest))
+            edges.erase(it);
 }
 
 /*
