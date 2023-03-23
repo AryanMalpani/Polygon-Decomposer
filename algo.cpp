@@ -4,6 +4,11 @@ using namespace std;
 
 #include "dcel.h"
 
+ofstream cfile("dcel_cords.txt");
+map<pair<float,float>, int> vertex_map;
+
+ofstream efile("dcel_edges.txt");
+
 bool isReflexAngle(Vertex A, Vertex B, Vertex C)
 {
     Vertex edge1 = Vertex(B.x-A.x, B.y-A.y);
@@ -47,6 +52,7 @@ void initialize_dcel()
 int main()
 {
     initialize_dcel();
+    int index=0;
     // cout<<"done initialize"<<endl;
     // int count = 0;
     // for(auto v:p.vertices)
@@ -117,8 +123,16 @@ int main()
             cout<<"check 2.3"<<endl;
 
             cout<<"l size = "<<l.n<<endl;
+        }
 
+        if(l.n>2)
+        {
             p.remove(l, p_cursor->next, p_start->prev);
+        }
+        else
+        {
+            p.removeVertex(*p.vertices.begin());
+            p.removeVertex(*p.vertices.begin());
         }
 
         cout<<"check 3"<<endl;
@@ -129,6 +143,19 @@ int main()
         cout<<p.vertices.size()<<endl;
         cout<<l.n<<endl;
 
-        l.save();
+
+        for(auto v:l.vertices)
+        {
+            vertex_map[v.pairup()] = ++index;
+            cfile<<v.x<<" "<<v.y<<endl;
+        }
+
+        cout<<"number of eedges "<<l.edges.size()<<endl;
+
+        for(auto it=l.edges.begin();it!=l.edges.end();it++)
+            efile<<vertex_map[(*(it->org)).pairup()]<<" "<<vertex_map[(*(it++->dest)).pairup()]<<endl;
+
     }
+    cfile.close();
+    efile.close();
 }
