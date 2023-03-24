@@ -5,7 +5,6 @@ using namespace std;
 class Edge;
 class Face;
 
-
 /*
     Class For Vertices
 */
@@ -32,6 +31,18 @@ pair<float,float> Vertex::pairup()
 bool operator==(Vertex const& c1, Vertex const& c2)
 {
     return (c1.x==c2.x)&&(c1.y==c2.y);
+}
+
+bool isReflexAngle(Vertex A, Vertex B, Vertex C)
+{
+    // cout<<A.x<<" "<<A.y<<" "<<B.x<<" "<<B.y;
+    Vertex edge1 = Vertex(B.x - A.x, B.y - A.y);
+    Vertex edge2 = Vertex(C.x - B.x, C.y - B.y);
+    double angle = edge1.x * edge2.y - edge1.y * edge2.x;
+    if (angle < 0)
+        return true;
+    else
+        return false;
 }
 
 
@@ -105,7 +116,7 @@ class DCEL {
         Vertex* addVertex(Vertex &v);
         void removeVertex(Vertex &v);
         bool isInteriorPoint(Vertex &p);
-        void remove(DCEL &l);
+        Edge* remove(DCEL &l);
         Vertex* findVertex(Vertex &v);
         Vertex* findVertexByIndex(int i);
         void save();
@@ -284,25 +295,23 @@ For a closed polygon, function will tell if given point is an interior point of 
 */
 bool DCEL::isInteriorPoint(Vertex &p)
 {
-    int count = 0;
-    for(auto e:edges)
-        if((p.y < e.org->y != p.y < e.dest->y) && 
-        (p.x < (e.dest->x-e.org->x) * (p.y-e.org->y) / (e.dest->y-e.org->y) + e.org->x))
-            count++;
+    bool ans = isReflexAngle(*(--vertices.end()),*vertices.begin(),p);
 
-    return count%2 == 1;
+    auto it=vertices.begin();
+    while(it!=(--vertices.end()))
+    {
+        auto curr = it++;
+        if(ans != isReflexAngle(*curr,*(it),p))
+            return false;
+    }
+
+    return true;
 }
 
-void DCEL::remove(DCEL &l)
+Edge* DCEL::remove(DCEL &l)
 {
-    cout<<"reached on remove"<<endl;
-
-    if(l.n<3)
-        for(auto it=l.vertices.begin();it!=l.vertices.end();it++)
-            removeVertex(*it);
-    else
-        for(auto it=++l.vertices.begin();it!=--l.vertices.end();it++)
-            removeVertex(*it);
+    for(auto it=++l.vertices.begin();it!=--l.vertices.end();it++)
+        removeVertex(*it);
 
     cout<<"finished all remove vertices"<<endl;
 
@@ -320,7 +329,7 @@ void DCEL::remove(DCEL &l)
                 exit(1);
         }
 
-    addEdge(v1, v2, (*(v1->inc_edges.begin()))->twin, (*(v2->inc_edges.begin())), NULL);
+    return addEdge(v1, v2, (*(v1->inc_edges.begin()))->twin, (*(v2->inc_edges.begin())), NULL);
 }
 
 Vertex* DCEL::findVertex(Vertex& v)
@@ -344,7 +353,7 @@ Vertex* DCEL::findVertexByIndex(int i)
 
 void DCEL::save()
 {
-    ofstream cfile("dcel_cords.txt");
+    ofstream cfile("l_cords.txt");
     map<pair<float,float>, int> vertex_map;
     int index=0;
     for(auto v:vertices)
@@ -355,7 +364,7 @@ void DCEL::save()
     cfile.close();
     cout<<"number of eedges "<<edges.size()<<endl;
 
-    ofstream efile("dcel_edges.txt");
+    ofstream efile("l_edges.txt");
     for(auto it=edges.begin();it!=edges.end();it++)
         efile<<vertex_map[(*(it->org)).pairup()]<<" "<<vertex_map[(*(it++->dest)).pairup()]<<endl;
     efile.close();
