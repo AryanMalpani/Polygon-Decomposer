@@ -143,7 +143,6 @@ will remove the edge e1 as well as its twin
 */
 void DCEL::removeEdge(Edge* e1)
 {
-    cout<<"removing edge"<<endl;
     Edge *e2 = e1->twin;
 
     e1->org->inc_edges.erase(e1);
@@ -161,24 +160,18 @@ void DCEL::removeEdge(Edge* e1)
         e1->next->prev = NULL;
     }
 
-    cout<<"removing edge"<<endl;
-
     for(auto it=edges.begin(); it!=edges.end();it++)
         if((it->org==e1->org && it->dest==e1->dest)||
             (it->org==e2->dest && it->org==e2->dest))
             {
-                cout<<"reache here"<<endl;
                 edges.erase(it);
-                cout<<"reache here2"<<endl;
                 break;
             }
     for(auto it=edges.begin(); it!=edges.end();it++)
         if((it->org==e1->org && it->dest==e1->dest)||
             (it->org==e2->dest && it->org==e2->dest))
             {
-                cout<<"reache here"<<endl;
                 edges.erase(it);
-                cout<<"reache here2"<<endl;
                 break;
             }
 }
@@ -203,7 +196,6 @@ will remove the vertex v as well as all the edges associated with it
 */
 void DCEL::removeVertex(Vertex &v)
 {
-    cout<<v.x<<" "<<v.y<<endl;
     for(auto it=vertices.begin();it!=vertices.end();it++)
         if(*it==v)
         {
@@ -212,10 +204,8 @@ void DCEL::removeVertex(Vertex &v)
                 removeEdge(e);
             vertices.erase(it);
             n--;
-            cout<<"vertices size "<<vertices.size()<<" n value "<<n<<endl;
             break;
         }
-    cout<<"done removing vertex"<<endl;
 }
 
 /*
@@ -238,7 +228,6 @@ void DCEL::remove(DCEL &l, Edge* before_start, Edge* after_end)
 
     for(auto it=l.vertices.begin();it!=l.vertices.end();it++)
     {
-        cout<<"vertex to be removed"<<it->x<<" "<<it->y<<endl;
         removeVertex(*it);
     }
 }
