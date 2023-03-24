@@ -4,10 +4,8 @@ using namespace std;
 
 #include "dcel.h"
 
-ofstream cfile("dcel_cords.txt");
-map<pair<double, double>, int> vertex_map;
+DCEL p;
 
-ofstream efile("dcel_edges.txt");
 
 bool isReflexAngle(Vertex A, Vertex B, Vertex C)
 {
@@ -19,7 +17,6 @@ bool isReflexAngle(Vertex A, Vertex B, Vertex C)
     return false;
 }
 
-DCEL p;
 
 void initialize_dcel()
 {
@@ -34,48 +31,62 @@ void initialize_dcel()
     }
 
     fstream edges_file("edges.txt", ios_base::in);
+    cout<<"check 0.1";
 
     int org, dest;
     edges_file >> org;
     edges_file >> dest;
-    p.addEdge(p.findVertexByIndex(org - 1), p.findVertexByIndex(dest - 1), NULL, NULL);
+    p.addEdge(p.findVertexByIndex(org - 1), p.findVertexByIndex(dest - 1), NULL, NULL, NULL);
     while (edges_file >> org)
     {
         edges_file >> dest;
-        p.addEdge(p.findVertexByIndex(org - 1), p.findVertexByIndex(dest - 1), &(*(-- --p.edges.end())), NULL);
+        p.addEdge(p.findVertexByIndex(org - 1), p.findVertexByIndex(dest - 1), &(*(-- --p.edges.end())), NULL, NULL);
     }
     (*(-- --p.edges.end())).next = &(*(p.edges.begin()));
     (*(p.edges.begin())).prev = &(*(-- --p.edges.end()));
     (*(-- --p.edges.end())).twin->prev = (*(p.edges.begin())).twin;
     (*(p.edges.begin())).twin->next = (*(-- --p.edges.end())).twin;
+    cout<<"check 0.5";
 }
 
 int main()
 {
+    cout<<"check 0";
+    ofstream cfile("dcel_cords.txt");
+    ofstream efile("dcel_edges.txt");
+    map<pair<double, double>, int> vertex_map;
     initialize_dcel();
     int index = 0;
     // cout<<"done initialize"<<endl;
-    // int count = 0;
-    // for(auto v:p.vertices)
-    //     cout<<v.x<<endl;
-    // cout<<p.edges.size()<<endl;
-    // for(auto it=p.edges.begin(); it!=p.edges.end();it++)
-    // {
-    //     cout<<count<<" "<<&*it<<" "<<it->twin<<" "<<it->prev<<endl;
-    //     cout<<count++<<" "<<it->org->x<<" "<<it->twin->org->x<<" "<<it->prev->org->x<<endl;
-    // }
+
     vector<DCEL> convex_polygons;
 
     while (p.vertices.size() > 3)
     {
+
+
+        int count = 0;
+        for(auto v:p.vertices)
+        cout<<v.x<<" "<<v.y<<endl;
+        cout<<p.edges.size()<<endl;
+        for(auto it=p.edges.begin(); it!=p.edges.end();it++)
+        {
+            cout<<count<<" "<<&*it<<" "<<it->twin<<" "<<it->prev<<endl;
+            cout<<count++<<" "<<it->org->x<<" "<<it->twin->org->x<<" "<<it->prev->org->x<<endl;
+        }
+
+
         DCEL l;
-        Edge *p_start = &(*(++p.edges.begin()));
+        Edge *p_start;
+        for(auto e:p.vertices.begin()->inc_edges)
+            if(e->left_face != &*p.faces.begin())
+                p_start = e;
         Edge *p_cursor = p_start;
 
         l.addVertex(*p_cursor->org);
         l.addVertex(*p_cursor->dest);
 
-        Edge *last_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL);
+        Edge *last_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL, NULL);
 
         p_cursor = p_cursor->next;
         Vertex next_vertex = *p_cursor->dest;
@@ -90,7 +101,7 @@ int main()
                isReflexAngle(next_vertex, *l.findVertexByIndex(0), *l.findVertexByIndex(1)))
         {
             l.addVertex(next_vertex);
-            last_edge = l.addEdge(p_cursor->org, p_cursor->dest, last_edge, NULL);
+            last_edge = l.addEdge(p_cursor->org, p_cursor->dest, last_edge, NULL, NULL);
             if (p_cursor->next == NULL)
             {
                 flag = false;
@@ -105,7 +116,7 @@ int main()
 
         if (flag)
             p_cursor = p_cursor->prev;
-        l.addEdge(&*l.findVertexByIndex(l.n - 1), &*l.findVertexByIndex(0), p_cursor, p_start);
+        l.addEdge(&*l.findVertexByIndex(l.n - 1), &*l.findVertexByIndex(0), p_cursor, p_start, NULL);
 
         cout << "check 2.1" << endl;
         cout << "l size = " << l.n << endl;
@@ -126,7 +137,7 @@ int main()
             {
                 l.removeVertex(*l.findVertexByIndex(l.n - 1));
                 p_cursor = p_cursor->prev;
-                last_edge = l.addEdge(l.findVertexByIndex(l.n - 1), l.findVertexByIndex(0), p_cursor, p_start);
+                last_edge = l.addEdge(l.findVertexByIndex(l.n - 1), l.findVertexByIndex(0), p_cursor, p_start, NULL);
                 for (int i = interiors.size() - 1; i >= 0; i--)
                     if (!l.isInteriorPoint(interiors[i]))
                         interiors.erase(interiors.begin() + i);
@@ -138,7 +149,7 @@ int main()
 
         if (l.n > 2)
         {
-            p.remove(l, p_cursor->next, p_start->prev);
+            p.remove(l);
         }
         else
         {
@@ -164,6 +175,8 @@ int main()
 
         for (auto it = l.edges.begin(); it != l.edges.end(); it++)
             efile << vertex_map[(*(it->org)).pairup()] << " " << vertex_map[(*(it++->dest)).pairup()] << endl;
+
+        cout<<"check 4"<<endl;
     }
     cfile.close();
     efile.close();

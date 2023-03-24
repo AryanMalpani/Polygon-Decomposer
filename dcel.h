@@ -3,6 +3,7 @@ using namespace std;
 #include <bits/stdc++.h>
 
 class Edge;
+class Face;
 
 
 /*
@@ -44,17 +45,46 @@ class Edge{
         Edge *twin;
         Vertex *org;
         Vertex *dest;
+        Face *left_face;
 
         //constructor
-        Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destination);
+        Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destination, Face *l_face);
 };
 
-Edge::Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destination) {
+Edge::Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destination, Face *l_face) {
     next = nextP;
     prev = prevP;
     twin = twinP;
     org = origin;
     dest = destination;
+    left_face = l_face;
+}
+
+
+/*
+    Class For Faces
+*/
+class Face{
+    public:
+        Edge* inc_edge;
+
+        //constructor
+        Face();
+        Face(Edge* i_edge);
+};
+
+Face::Face() {
+    inc_edge = NULL;
+}
+
+Face::Face(Edge* i_edge) {
+    inc_edge = i_edge;
+}
+
+bool operator==(Face const& f1, Face const& f2)
+{
+    return ((f1.inc_edge->org==f2.inc_edge->org)&&
+            (f1.inc_edge->dest==f2.inc_edge->dest));
 }
 
 
@@ -65,16 +95,17 @@ class DCEL {
     public:
         list<Edge> edges;
         list<Vertex> vertices;
+        list<Face> faces;
         int n;
 
     public:
         DCEL();
-        Edge* addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next);
+        Edge* addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_face);
         void removeEdge(Edge* e1);
         Vertex* addVertex(Vertex &v);
         void removeVertex(Vertex &v);
         bool isInteriorPoint(Vertex &p);
-        void remove(DCEL &l, Edge* before_start, Edge* before_end);
+        void remove(DCEL &l);
         Vertex* findVertex(Vertex &v);
         Vertex* findVertexByIndex(int i);
         void save();
@@ -83,6 +114,7 @@ class DCEL {
 DCEL::DCEL() {
     edges.clear();
     vertices.clear();
+    faces.clear();
     n=0;
 }
 
@@ -93,8 +125,9 @@ e1next is the next
 both e1prev and e1next are pointers
 pass NULL values if prev or next not known
 */
-Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
+Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_face)
 {
+    cout<<"reached here";
     //insert vertices if not already present
     v1 = addVertex(*v1);
     v2 = addVertex(*v2);
@@ -104,14 +137,22 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
         if((*it).org == v1 && (*it).dest == v2)
             return &(*it);
 
-    Edge e1 = Edge(NULL, NULL, NULL, v1, v2);
-    Edge e2 = Edge(NULL, NULL, NULL, v2, v1);
+    Edge e1 = Edge(NULL, NULL, NULL, v1, v2, l_face);
+    Edge e2 = Edge(NULL, NULL, NULL, v2, v1, NULL);
 
     edges.push_back(e1);
     edges.push_back(e2);
 
     Edge* e1p = &(*(----edges.end()));
     Edge* e2p = &(*(--edges.end()));
+
+    if(!l_face)
+    {
+        if(!l_face->inc_edge)
+            l_face->inc_edge = e1p;
+        else
+            e2p->left_face = l_face->inc_edge->twin->left_face;
+    }
 
     e1p->twin = e2p;
     e2p->twin = e1p;
@@ -125,6 +166,12 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
         e2p->next = e1prev->twin;
         e1prev->next = e1p;
         e1prev->twin->prev = e2p;
+
+        if(e1prev->left_face)
+        {
+            e1p->left_face = e1prev->left_face;
+            e2p->left_face = e1prev->twin->left_face;
+        }
     }
 
     if(e1next != NULL)
@@ -133,6 +180,25 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next)
         e2p->prev = e1next->twin;
         e1next->prev = e1p;
         e1next->twin->next = e2p;
+
+        if(e1next->left_face)
+        {
+            e1p->left_face = e1next->left_face;
+            e2p->left_face = e1next->twin->left_face;
+        }
+    }
+
+    if(!e1p->left_face)
+    {
+        Face f1 = Face(e1p);
+        faces.push_back(f1);
+        e1p->left_face = &*faces.begin();
+    }
+    if(!e2p->left_face)
+    {
+        Face f2 = Face(e2p);
+        faces.push_back(f2);
+        e2p->left_face = &*faces.begin();
     }
 
     return e1p;
@@ -162,14 +228,14 @@ void DCEL::removeEdge(Edge* e1)
 
     for(auto it=edges.begin(); it!=edges.end();it++)
         if((it->org==e1->org && it->dest==e1->dest)||
-            (it->org==e2->dest && it->org==e2->dest))
+            (it->org==e2->org && it->dest==e2->dest))
             {
                 edges.erase(it);
                 break;
             }
     for(auto it=edges.begin(); it!=edges.end();it++)
         if((it->org==e1->org && it->dest==e1->dest)||
-            (it->org==e2->dest && it->org==e2->dest))
+            (it->org==e2->org && it->dest==e2->dest))
             {
                 edges.erase(it);
                 break;
@@ -222,14 +288,27 @@ bool DCEL::isInteriorPoint(Vertex &p)
     return count%2 == 1;
 }
 
-void DCEL::remove(DCEL &l, Edge* before_start, Edge* after_end)
+void DCEL::remove(DCEL &l)
 {
-    addEdge(after_end->org, before_start->dest, after_end->prev, before_start->next);
 
     for(auto it=l.vertices.begin();it!=l.vertices.end();it++)
-    {
         removeVertex(*it);
-    }
+
+    Vertex* v1=NULL;
+    Vertex* v2=NULL;
+
+    for(auto it=vertices.begin();it!=vertices.end();it++)
+        if(it->inc_edges.size()==1)
+        {
+            if(!v1)
+                v1 = &*it;
+            else if(!v2)
+                v2 = &*it;
+            else
+                exit(1);
+        }
+
+    addEdge(v1, v2, (*(v1->inc_edges.begin()))->twin, (*(v2->inc_edges.begin())), NULL);
 }
 
 Vertex* DCEL::findVertex(Vertex& v)
