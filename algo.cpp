@@ -7,80 +7,58 @@ using namespace std;
 ofstream cfile("dcel_cords.txt");
 ofstream efile("dcel_edges.txt");
 
-DCEL p;
-map<pair<double, double>, int> vertex_map;
-int vertex_index=0;
 vector<DCEL> convex_polygons;
-bool single_test = true;
+map<pair<double, double>, int> vertex_map;
+int vertex_index = 0;
 
-void initialize_dcel()
+/*!
+    Function will initialize dcell with the given files for vertices and edges.
+    Here the function assumes that the a given edge is the prev for the next edge (and vice versa)
+*/
+void initialize_dcel(DCEL &d, string points_file, string lines_file)
 {
-    fstream vertices_file("cords.txt", ios_base::in);
+    fstream vertices_file(points_file, ios_base::in);
 
     double x, y;
     while (vertices_file >> x)
     {
         vertices_file >> y;
         Vertex v = Vertex(x, y);
-        p.addVertex(v);
+        d.addVertex(v);
     }
 
-    fstream edges_file("edges.txt", ios_base::in);
+    fstream edges_file(lines_file, ios_base::in);
 
     int org, dest;
     edges_file >> org;
     edges_file >> dest;
-    p.addEdge(p.findVertexByIndex(org - 1), p.findVertexByIndex(dest - 1), NULL, NULL, NULL);
+    d.addEdge(d.findVertexByIndex(org - 1), d.findVertexByIndex(dest - 1), NULL, NULL, NULL);
     while (edges_file >> org)
     {
         edges_file >> dest;
-        p.addEdge(p.findVertexByIndex(org - 1), p.findVertexByIndex(dest - 1), &(*(-- --p.edges.end())), NULL, NULL);
+        d.addEdge(d.findVertexByIndex(org - 1), d.findVertexByIndex(dest - 1), &(*(-- --d.edges.end())), NULL, NULL);
     }
-    (*(-- --p.edges.end())).next = &(*(p.edges.begin()));
-    (*(p.edges.begin())).prev = &(*(-- --p.edges.end()));
-    (*(-- --p.edges.end())).twin->prev = (*(p.edges.begin())).twin;
-    (*(p.edges.begin())).twin->next = (*(-- --p.edges.end())).twin;
+    (*(-- --d.edges.end())).next = &(*(d.edges.begin()));
+    (*(d.edges.begin())).prev = &(*(-- --d.edges.end()));
+    (*(-- --d.edges.end())).twin->prev = (*(d.edges.begin())).twin;
+    (*(d.edges.begin())).twin->next = (*(-- --d.edges.end())).twin;
 }
 
-void mp1(Edge *p_start)
+/*!
+    THE function that performs the MP1 algorithm for partitioning recursively
+    Here the function assumes that the given vertices are in anti-clockwise order
+*/
+void mp1(DCEL &p, Edge *p_start)
 {
 
     DCEL l;
 
-    if(!p_start)    
+    // To find the default starting edge when NULL is passed
+    if (!p_start)
         for (auto e : (--p.vertices.end())->inc_edges)
             if (e->left_face != &*p.faces.begin())
                 p_start = e;
     Edge *p_cursor = p_start;
-
-
-
-
-
-
-
-
-
-
-    cout<<endl<<"starting point "<<p_start->org->x<<" "<<p_start->org->y<<" "<<p_start->dest->x<<" "<<p_start->dest->y<<endl;
-
-    int count = 0;
-    for (auto v : p.vertices)
-        cout << v.x << " " << v.y << endl;
-    cout << p.edges.size() << endl;
-    for (auto it = p.edges.begin(); it != p.edges.end(); it++)
-    {
-        cout << count << " " << &*it << " " << it->twin << " " << it->prev << endl;
-        cout << count++ << " " << it->org->x << " " << it->org->y << "  face= " << it->left_face << " " << it->prev->org->x << endl;
-    }
-
-
-
-
-
-
-    // l.addVertex(*p_cursor->org);
-    // l.addVertex(*p_cursor->dest);
 
     Edge *l_first_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL, NULL);
     Edge *l_last_edge = l_first_edge;
@@ -108,24 +86,13 @@ void mp1(Edge *p_start)
     if (flag)
         p_cursor = p_cursor->prev;
     l.addEdge(&*l.findVertexByIndex(l.n - 1), &*l.findVertexByIndex(0), l_last_edge, l_first_edge, NULL);
-    if(single_test)
-    {
-        l.save();single_test=false;
-    }
-    cout << "check 2.1 l size = " << l.n << endl;
 
-    if (l.n < p.n && l.n>2)
+    if (l.n < p.n && l.n > 2)
     {
         vector<Vertex> interiors;
         for (Vertex v : p.vertices)
             if (l.findVertex(v) == NULL && l.isInteriorPoint(v) == true)
-            {
-                cout << "found interior point = "<<v.x<<" "<<v.y<<endl;
-                l.save();
                 interiors.push_back(v);
-            }
-
-        cout<<"check 2.1.5"<<endl;
 
         while (!interiors.empty())
         {
@@ -138,30 +105,12 @@ void mp1(Edge *p_start)
         }
     }
 
-    cout << "check 2.3 l size = " << l.n << endl;
 
     if (l.n > 2)
     {
-        int count = 0;
-    for (auto v : p.vertices)
-        cout << v.x << " " << v.y << endl;
-    cout << p.edges.size() << endl;
-    for (auto it = p.edges.begin(); it != p.edges.end(); it++)
-    {
-        cout << count << " " << &*it << " " << it->twin << " " << it->prev << endl;
-        cout << count++ << " " << it->org->x << " " << it->org->y << "  face= " << it->left_face << " " << it->prev->org->x << endl;
-    }
-
-
-
-        Edge* new_start = p.remove(l);
-        cout << "check 3" << endl;
+        Edge *new_start = p.remove(l);
 
         convex_polygons.push_back(l);
-
-        cout << p.n << endl;
-        cout << p.vertices.size() << endl;
-        cout << l.n << endl;
 
         for (auto v : l.vertices)
         {
@@ -169,34 +118,32 @@ void mp1(Edge *p_start)
             cfile << v.x << " " << v.y << endl;
         }
 
-        cout << "number of edges "<< l.edges.size() << endl;
-
         for (auto it = l.edges.begin(); it != l.edges.end(); it++)
             efile << vertex_map[(*(it->org)).pairup()] << " " << vertex_map[(*(it++->dest)).pairup()] << endl;
 
-        if(p.n>3)
+        if (p.n > 3)
         {
-            if(new_start->left_face != &*p.faces.begin())
-                mp1(new_start);
+            if (new_start->left_face != &*p.faces.begin())
+                mp1(p, new_start);
             else
-                mp1(new_start->twin);
+                mp1(p, new_start->twin);
         }
     }
     else
     {
-        if(p.n>3)
-            mp1(p_start->next);
+        if (p.n > 3)
+            mp1(p, p_start->next);
     }
 
-    cout << "check 4" << endl;
 }
 
 int main()
 {
-    initialize_dcel();
+    DCEL p, mp;
+    initialize_dcel(p, "cords.txt", "edges.txt");
 
     if (p.n > 3)
-        mp1(NULL);
+        mp1(p, NULL);
 
     for (auto v : p.vertices)
     {
@@ -204,10 +151,10 @@ int main()
         cfile << v.x << " " << v.y << endl;
     }
 
-    cout << "number of eedges " << p.edges.size() << endl;
-
     for (auto it = p.edges.begin(); it != p.edges.end(); it++)
         efile << vertex_map[(*(it->org)).pairup()] << " " << vertex_map[(*(it++->dest)).pairup()] << endl;
+
+    convex_polygons.push_back(p);
 
     cfile.close();
     efile.close();

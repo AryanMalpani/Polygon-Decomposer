@@ -5,7 +5,7 @@ using namespace std;
 class Edge;
 class Face;
 
-/*
+/*!
     Class For Vertices
 */
 class Vertex{
@@ -35,7 +35,6 @@ bool operator==(Vertex const& c1, Vertex const& c2)
 
 bool isReflexAngle(Vertex A, Vertex B, Vertex C)
 {
-    // cout<<A.x<<" "<<A.y<<" "<<B.x<<" "<<B.y;
     Vertex edge1 = Vertex(B.x - A.x, B.y - A.y);
     Vertex edge2 = Vertex(C.x - B.x, C.y - B.y);
     double angle = edge1.x * edge2.y - edge1.y * edge2.x;
@@ -46,7 +45,7 @@ bool isReflexAngle(Vertex A, Vertex B, Vertex C)
 }
 
 
-/*
+/*!
     Class For Edges
 */
 class Edge{
@@ -72,7 +71,7 @@ Edge::Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destin
 }
 
 
-/*
+/*!
     Class For Faces
 */
 class Face{
@@ -99,8 +98,15 @@ bool operator==(Face const& f1, Face const& f2)
 }
 
 
-/*
+/*!
     Class For Polygons represented as DCELs
+    -edges is a list containing all the edges in the DCEL
+    -vertices is a list containing all the vertices in the DCEL
+    -faces is a list containing all the faces in the DCEL
+    -n is the count for the number of vertices in the DCEL
+    -added_diagonals is vector to contain the extra diagonals made during partitioning
+     in the MP1 process so that they can be used during the merging process
+
 */
 class DCEL {
     public:
@@ -108,6 +114,7 @@ class DCEL {
         list<Vertex> vertices;
         list<Face> faces;
         int n;
+        vector<pair<Vertex, Vertex>> added_diagonals;
 
     public:
         DCEL();
@@ -129,12 +136,15 @@ DCEL::DCEL() {
     n=0;
 }
 
-/*
-vertices v1 and v2 should be passed in clockwise order
-e1prev is the previous of the edge made from v1 to v2
+/*!
+Vertices v1 and v2 should be passed in clockwise order
+e1prev is the previous edge of the edge made from v1 to v2
 e1next is the next
 both e1prev and e1next are pointers
 pass NULL values if prev or next not known
+l_face contains the face to the left of the edge v1 to v2
+If no face is passed, function checks for the faces of prev & next otherwise creates new faces
+for both the edge and its twin 
 */
 Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_face)
 {
@@ -214,8 +224,8 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_
     return e1p;
 }
 
-/*
-will remove the edge e1 as well as its twin
+/*!
+Will remove the edge e1 as well as its twin
 */
 void DCEL::removeEdge(Edge* e1)
 {
@@ -258,8 +268,8 @@ void DCEL::removeEdge(Edge* e1)
             }
 }
 
-/*
-will add vertex v to the DCEL
+/*!
+Will add vertex v to the DCEL
 */
 Vertex* DCEL::addVertex(Vertex v)
 {
@@ -275,8 +285,8 @@ Vertex* DCEL::addVertex(Vertex v)
     return &(*(--vertices.end()));
 }
 
-/*
-will remove the vertex v as well as all the edges associated with it
+/*!
+Will remove the vertex v as well as all the edges associated with it
 */
 void DCEL::removeVertex(Vertex v)
 {
@@ -292,7 +302,7 @@ void DCEL::removeVertex(Vertex v)
         }
 }
 
-/*
+/*!
 For a closed polygon, function will tell if given point is an interior point of the DCEL
 */
 bool DCEL::isInteriorPoint(Vertex p)
@@ -310,6 +320,9 @@ bool DCEL::isInteriorPoint(Vertex p)
     return true;
 }
 
+/*!
+Function will partition the DCEL by removing the DCEL l
+*/
 Edge* DCEL::remove(DCEL &l)
 {
     for(auto it=++l.vertices.begin();it!=--l.vertices.end();it++)
@@ -331,9 +344,14 @@ Edge* DCEL::remove(DCEL &l)
                 exit(1);
         }
 
+    added_diagonals.push_back(make_pair(*v1,*v2));
+
     return addEdge(v1, v2, (*(v1->inc_edges.begin()))->twin, (*(v2->inc_edges.begin())), NULL);
 }
 
+/*!
+Function to check if given vertex is present in the DCEL and if so return the pointer to it
+*/
 Vertex* DCEL::findVertex(Vertex v)
 {
     for(auto it=vertices.begin();it!=vertices.end();it++)
@@ -343,6 +361,9 @@ Vertex* DCEL::findVertex(Vertex v)
     return NULL;    
 }
 
+/*!
+Function to find given vertex in DCEL by the index number and return the pointer to it
+*/
 Vertex* DCEL::findVertexByIndex(int i)
 {
     int count=0;
@@ -353,6 +374,9 @@ Vertex* DCEL::findVertexByIndex(int i)
     return NULL;
 }
 
+/*!
+To Save the current state of the DCEL in vertices and edges file format
+*/
 void DCEL::save()
 {
     ofstream cfile("l_cords.txt");
@@ -364,7 +388,6 @@ void DCEL::save()
         cfile<<v.x<<" "<<v.y<<endl;
     }
     cfile.close();
-    cout<<"number of eedges "<<edges.size()<<endl;
 
     ofstream efile("l_edges.txt");
     for(auto it=edges.begin();it!=edges.end();it++)
