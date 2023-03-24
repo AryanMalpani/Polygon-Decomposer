@@ -113,11 +113,11 @@ class DCEL {
         DCEL();
         Edge* addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_face);
         void removeEdge(Edge* e1);
-        Vertex* addVertex(Vertex &v);
-        void removeVertex(Vertex &v);
-        bool isInteriorPoint(Vertex &p);
+        Vertex* addVertex(Vertex v);
+        void removeVertex(Vertex v);
+        bool isInteriorPoint(Vertex p);
         Edge* remove(DCEL &l);
-        Vertex* findVertex(Vertex &v);
+        Vertex* findVertex(Vertex v);
         Vertex* findVertexByIndex(int i);
         void save();
 };
@@ -261,13 +261,15 @@ void DCEL::removeEdge(Edge* e1)
 /*
 will add vertex v to the DCEL
 */
-Vertex* DCEL::addVertex(Vertex &v)
+Vertex* DCEL::addVertex(Vertex v)
 {
     Vertex* i = findVertex(v);
     if(i!=NULL)
         return i;
 
-    vertices.push_back(v);
+    Vertex v_copy = Vertex(v.x,v.y);
+
+    vertices.push_back(v_copy);
     n++;
 
     return &(*(--vertices.end()));
@@ -276,7 +278,7 @@ Vertex* DCEL::addVertex(Vertex &v)
 /*
 will remove the vertex v as well as all the edges associated with it
 */
-void DCEL::removeVertex(Vertex &v)
+void DCEL::removeVertex(Vertex v)
 {
     for(auto it=vertices.begin();it!=vertices.end();it++)
         if(*it==v)
@@ -293,7 +295,7 @@ void DCEL::removeVertex(Vertex &v)
 /*
 For a closed polygon, function will tell if given point is an interior point of the DCEL
 */
-bool DCEL::isInteriorPoint(Vertex &p)
+bool DCEL::isInteriorPoint(Vertex p)
 {
     bool ans = isReflexAngle(*(--vertices.end()),*vertices.begin(),p);
 
@@ -321,10 +323,10 @@ Edge* DCEL::remove(DCEL &l)
     for(auto it=vertices.begin();it!=vertices.end();it++)
         if(it->inc_edges.size()==1)
         {
-            if(!v1)
-                v1 = &*it;
-            else if(!v2)
-                v2 = &*it;
+            if(!v1){cout<<it->x<<" "<<it->y;
+                v1 = &*it;}
+            else if(!v2){cout<<it->x<<" "<<it->y;
+                v2 = &*it;}
             else
                 exit(1);
         }
@@ -332,7 +334,7 @@ Edge* DCEL::remove(DCEL &l)
     return addEdge(v1, v2, (*(v1->inc_edges.begin()))->twin, (*(v2->inc_edges.begin())), NULL);
 }
 
-Vertex* DCEL::findVertex(Vertex& v)
+Vertex* DCEL::findVertex(Vertex v)
 {
     for(auto it=vertices.begin();it!=vertices.end();it++)
         if(*it==v)

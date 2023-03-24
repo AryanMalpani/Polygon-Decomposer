@@ -45,16 +45,6 @@ void initialize_dcel()
 void mp1(Edge *p_start)
 {
 
-    // int count = 0;
-    // for (auto v : p.vertices)
-    //     cout << v.x << " " << v.y << endl;
-    // cout << p.edges.size() << endl;
-    // for (auto it = p.edges.begin(); it != p.edges.end(); it++)
-    // {
-    //     cout << count << " " << &*it << " " << it->twin << " " << it->prev << endl;
-    //     cout << count++ << " " << it->org->x << " " << it->left_face << " " << it->prev->org->x << endl;
-    // }
-
     DCEL l;
 
     if(!p_start)    
@@ -63,8 +53,34 @@ void mp1(Edge *p_start)
                 p_start = e;
     Edge *p_cursor = p_start;
 
-    l.addVertex(*p_cursor->org);
-    l.addVertex(*p_cursor->dest);
+
+
+
+
+
+
+
+
+
+    cout<<endl<<"starting point "<<p_start->org->x<<" "<<p_start->org->y<<" "<<p_start->dest->x<<" "<<p_start->dest->y<<endl;
+
+    int count = 0;
+    for (auto v : p.vertices)
+        cout << v.x << " " << v.y << endl;
+    cout << p.edges.size() << endl;
+    for (auto it = p.edges.begin(); it != p.edges.end(); it++)
+    {
+        cout << count << " " << &*it << " " << it->twin << " " << it->prev << endl;
+        cout << count++ << " " << it->org->x << " " << it->org->y << "  face= " << it->left_face << " " << it->prev->org->x << endl;
+    }
+
+
+
+
+
+
+    // l.addVertex(*p_cursor->org);
+    // l.addVertex(*p_cursor->dest);
 
     Edge *l_first_edge = l.addEdge(p_cursor->org, p_cursor->dest, NULL, NULL, NULL);
     Edge *l_last_edge = l_first_edge;
@@ -79,7 +95,6 @@ void mp1(Edge *p_start)
            isReflexAngle(*l.findVertexByIndex(l.n - 1), next_vertex, *l.findVertexByIndex(0)) &&
            isReflexAngle(next_vertex, *l.findVertexByIndex(0), *l.findVertexByIndex(1)))
     {
-        l.addVertex(next_vertex);
         l_last_edge = l.addEdge(p_cursor->org, p_cursor->dest, l_last_edge, NULL, NULL);
         if (p_cursor->next == NULL)
         {
@@ -127,6 +142,18 @@ void mp1(Edge *p_start)
 
     if (l.n > 2)
     {
+        int count = 0;
+    for (auto v : p.vertices)
+        cout << v.x << " " << v.y << endl;
+    cout << p.edges.size() << endl;
+    for (auto it = p.edges.begin(); it != p.edges.end(); it++)
+    {
+        cout << count << " " << &*it << " " << it->twin << " " << it->prev << endl;
+        cout << count++ << " " << it->org->x << " " << it->org->y << "  face= " << it->left_face << " " << it->prev->org->x << endl;
+    }
+
+
+
         Edge* new_start = p.remove(l);
         cout << "check 3" << endl;
 
@@ -142,7 +169,7 @@ void mp1(Edge *p_start)
             cfile << v.x << " " << v.y << endl;
         }
 
-        cout << "number of edges " << l.edges.size() << endl;
+        cout << "number of edges "<< l.edges.size() << endl;
 
         for (auto it = l.edges.begin(); it != l.edges.end(); it++)
             efile << vertex_map[(*(it->org)).pairup()] << " " << vertex_map[(*(it++->dest)).pairup()] << endl;
