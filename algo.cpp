@@ -72,13 +72,17 @@ int main()
         for(auto it=p.edges.begin(); it!=p.edges.end();it++)
         {
             cout<<count<<" "<<&*it<<" "<<it->twin<<" "<<it->prev<<endl;
-            cout<<count++<<" "<<it->org->x<<" "<<it->twin->org->x<<" "<<it->prev->org->x<<endl;
+            cout<<count++<<" "<<it->org->x<<" "<<it->left_face<<" "<<it->prev->org->x<<endl;
         }
+
+
+
+
 
 
         DCEL l;
         Edge *p_start;
-        for(auto e:p.vertices.begin()->inc_edges)
+        for(auto e:(--p.vertices.end())->inc_edges)
             if(e->left_face != &*p.faces.begin())
                 p_start = e;
         Edge *p_cursor = p_start;
@@ -147,15 +151,7 @@ int main()
             cout << "l size = " << l.n << endl;
         }
 
-        if (l.n > 2)
-        {
-            p.remove(l);
-        }
-        else
-        {
-            p.removeVertex(*p.vertices.begin());
-            p.removeVertex(*p.vertices.begin());
-        }
+        p.remove(l);
 
         cout << "check 3" << endl;
 

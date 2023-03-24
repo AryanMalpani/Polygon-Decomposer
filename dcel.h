@@ -127,7 +127,6 @@ pass NULL values if prev or next not known
 */
 Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_face)
 {
-    cout<<"reached here";
     //insert vertices if not already present
     v1 = addVertex(*v1);
     v2 = addVertex(*v2);
@@ -146,7 +145,7 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_
     Edge* e1p = &(*(----edges.end()));
     Edge* e2p = &(*(--edges.end()));
 
-    if(!l_face)
+    if(l_face)
     {
         if(!l_face->inc_edge)
             l_face->inc_edge = e1p;
@@ -192,13 +191,13 @@ Edge* DCEL::addEdge(Vertex* v1, Vertex* v2, Edge* e1prev, Edge* e1next, Face* l_
     {
         Face f1 = Face(e1p);
         faces.push_back(f1);
-        e1p->left_face = &*faces.begin();
+        e1p->left_face = &*(--faces.end());
     }
     if(!e2p->left_face)
     {
         Face f2 = Face(e2p);
         faces.push_back(f2);
-        e2p->left_face = &*faces.begin();
+        e2p->left_face = &*(--faces.end());
     }
 
     return e1p;
@@ -213,6 +212,12 @@ void DCEL::removeEdge(Edge* e1)
 
     e1->org->inc_edges.erase(e1);
     e2->org->inc_edges.erase(e2);
+
+    //Check if it is incident edge of any face
+    if(e1->left_face->inc_edge == e1)
+        e1->left_face->inc_edge = NULL;
+    if(e2->left_face->inc_edge == e2)
+        e2->left_face->inc_edge = NULL;
 
     if(e1->prev != NULL)
     {
@@ -290,9 +295,16 @@ bool DCEL::isInteriorPoint(Vertex &p)
 
 void DCEL::remove(DCEL &l)
 {
+    cout<<"reached on remove"<<endl;
 
-    for(auto it=l.vertices.begin();it!=l.vertices.end();it++)
-        removeVertex(*it);
+    if(l.n<3)
+        for(auto it=l.vertices.begin();it!=l.vertices.end();it++)
+            removeVertex(*it);
+    else
+        for(auto it=++l.vertices.begin();it!=--l.vertices.end();it++)
+            removeVertex(*it);
+
+    cout<<"finished all remove vertices"<<endl;
 
     Vertex* v1=NULL;
     Vertex* v2=NULL;
