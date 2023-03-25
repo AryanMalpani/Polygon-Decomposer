@@ -56,7 +56,7 @@ bool isReflexAngle(Vertex A, Vertex B, Vertex C)
     else
         return false;
 }
-  
+
 // returns square of distance b/w two points
 double lengthSquare(Vertex X, Vertex Y)
 {
