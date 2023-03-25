@@ -2,6 +2,8 @@ using namespace std;
 
 #include <bits/stdc++.h>
 
+#define PI 3.1415926535
+
 class Edge;
 class Face;
 
@@ -10,20 +12,26 @@ class Face;
 */
 class Vertex{
     public:
-        float x, y;
+        double x, y;
         set<Edge*> inc_edges;
 
         //constructor
-        Vertex(float x_value, float y_value);
-        pair<float,float> pairup();
+        Vertex();
+        Vertex(double x_value, double y_value);
+        pair<double,double> pairup();
 };
 
-Vertex::Vertex(float x_value, float y_value) {
+Vertex::Vertex() {
+    x = DBL_MAX;
+    y = DBL_MAX;
+}
+
+Vertex::Vertex(double x_value, double y_value) {
     x = x_value;
     y = y_value;
 }
 
-pair<float,float> Vertex::pairup()
+pair<double,double> Vertex::pairup()
 {
     return make_pair(x,y);
 }
@@ -31,6 +39,11 @@ pair<float,float> Vertex::pairup()
 bool operator==(Vertex const& c1, Vertex const& c2)
 {
     return (c1.x==c2.x)&&(c1.y==c2.y);
+}
+
+bool operator!=(Vertex const& c1, Vertex const& c2)
+{
+    return (c1.x!=c2.x)||(c1.y!=c2.y);
 }
 
 bool isReflexAngle(Vertex A, Vertex B, Vertex C)
@@ -43,6 +56,39 @@ bool isReflexAngle(Vertex A, Vertex B, Vertex C)
     else
         return false;
 }
+  
+// returns square of distance b/w two points
+double lengthSquare(Vertex X, Vertex Y)
+{
+    double xDiff = X.x - Y.x;
+    double yDiff = X.y - Y.y;
+    return xDiff*xDiff + yDiff*yDiff;
+}
+
+double getAngle(Vertex A, Vertex B, Vertex C)
+{
+    // Square of lengths be a2, b2, c2
+    double a2 = lengthSquare(B,C);
+    double b2 = lengthSquare(A,C);
+    double c2 = lengthSquare(A,B);
+  
+    // length of sides be a, b, c
+    double a = sqrt(a2);
+    double b = sqrt(b2);
+    double c = sqrt(c2);
+  
+    // From Cosine law
+    double alpha = acos((b2 + c2 - a2)/(2*b*c));
+    double beta = acos((a2 + c2 - b2)/(2*a*c));
+    double gamma = acos((a2 + b2 - c2)/(2*a*b));
+  
+    // Converting to degree
+    alpha = alpha * 180 / PI;
+    beta = beta * 180 / PI;
+    gamma = gamma * 180 / PI;
+  
+    return alpha;
+}
 
 
 /*!
@@ -50,12 +96,12 @@ bool isReflexAngle(Vertex A, Vertex B, Vertex C)
 */
 class Edge{
     public:
-        Edge *next;
-        Edge *prev;
-        Edge *twin;
-        Vertex *org;
-        Vertex *dest;
-        Face *left_face;
+        Edge* next;
+        Edge* prev;
+        Edge* twin;
+        Vertex* org;
+        Vertex* dest;
+        Face* left_face;
 
         //constructor
         Edge(Edge *nextP, Edge *prevP, Edge *twinP, Vertex *origin, Vertex *destination, Face *l_face);
@@ -293,9 +339,8 @@ void DCEL::removeVertex(Vertex v)
     for(auto it=vertices.begin();it!=vertices.end();it++)
         if(*it==v)
         {
-            auto dup = it->inc_edges;
-            for(auto e:dup)
-                removeEdge(e);
+            while(!it->inc_edges.empty())
+                removeEdge(*(it->inc_edges.begin()));
             vertices.erase(it);
             n--;
             break;
@@ -380,7 +425,7 @@ To Save the current state of the DCEL in vertices and edges file format
 void DCEL::save()
 {
     ofstream cfile("l_cords.txt");
-    map<pair<float,float>, int> vertex_map;
+    map<pair<double,double>, int> vertex_map;
     int index=0;
     for(auto v:vertices)
     {

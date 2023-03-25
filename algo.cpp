@@ -50,7 +50,6 @@ void initialize_dcel(DCEL &d, string points_file, string lines_file)
 */
 void mp1(DCEL &p, Edge *p_start)
 {
-
     DCEL l;
 
     // To find the default starting edge when NULL is passed
@@ -105,7 +104,6 @@ void mp1(DCEL &p, Edge *p_start)
         }
     }
 
-
     if (l.n > 2)
     {
         Edge *new_start = p.remove(l);
@@ -139,8 +137,20 @@ void mp1(DCEL &p, Edge *p_start)
 
 int main()
 {
-    DCEL p, mp;
+    DCEL p;
     initialize_dcel(p, "cords.txt", "edges.txt");
+
+    int count = 0;
+    for (auto v : p.vertices)
+        cout << v.x << " " << v.y << endl;
+    cout << p.edges.size() << endl;
+    for (auto it = p.edges.begin(); it != p.edges.end(); it++)
+    {
+        cout << count << " " << &*it << " " << it->twin << " " << it->org << endl;
+        for(auto e:it->org->inc_edges)
+            cout<<e->org<<" ";
+        cout <<endl<< count++ << " " << it->org->x << " " << it->org->y << "  face= " << it->left_face << " " << it->prev->org->x << endl;
+    }
 
     if (p.n > 3)
         mp1(p, NULL);
@@ -155,6 +165,93 @@ int main()
         efile << vertex_map[(*(it->org)).pairup()] << " " << vertex_map[(*(it++->dest)).pairup()] << endl;
 
     convex_polygons.push_back(p);
+
+    cout<<"Number of diagonals = "<<p.added_diagonals.size()<<endl;
+
+    vector<pair<Vertex, Vertex>> inessential_diagonals;
+
+    for(auto dig:p.added_diagonals)
+    {
+        Vertex org = dig.first;
+        Vertex dest = dig.second;
+
+        double p_min=DBL_MAX;
+        Vertex vp_min;
+        Vertex vn_min;
+        Vertex default_v;
+        double n_min=-DBL_MAX;
+
+        cout<<org.x<<endl;
+
+        for(auto polygon:convex_polygons)
+        {
+            Vertex* p_org = polygon.findVertex(org);
+            if(p_org)
+            {
+                cout<<p_org<<endl;
+                for(auto e:polygon.edges)
+                {
+                    if(org!=*e.org || *(e.dest)==dest)
+                        continue;
+                    cout<<"e-address "<<&e<<" "<<e.dest->x<<endl;
+                    double slope_diff = (dest.y-org.y)/(dest.x-org.x) - (e.dest->y-org.y)/(e.dest->x-org.x);
+                    cout<<slope_diff<<endl;
+                    if(slope_diff>0)
+                    {
+                        p_min = min(p_min, slope_diff);
+                        vp_min = Vertex(e.dest->x,e.dest->y);
+                    }
+                    else
+                    {
+                        n_min = max(n_min, slope_diff);
+                        vn_min = Vertex(e.dest->x,e.dest->y);
+                    }
+                }
+            }
+        }
+
+        if(vp_min == default_v || vn_min == default_v || ((getAngle(org,dest,vp_min)+getAngle(org,dest,vn_min))>180))
+            continue;
+        
+        p_min=DBL_MAX;
+        vp_min = default_v;
+        vn_min = default_v;
+        default_v = default_v;
+        n_min=-DBL_MAX;
+
+        for(auto polygon:convex_polygons)
+        {
+            Vertex* p_dest = polygon.findVertex(dest);
+            if(p_dest)
+            {
+                cout<<p_dest<<endl;
+                for(auto e:polygon.edges)
+                {
+                    if(org!=*e.org || *(e.dest)==dest)
+                        continue;
+                    cout<<"e-address "<<&e<<" "<<e.dest->x<<endl;
+                    double slope_diff = (org.y-dest.y)/(org.x-dest.x) - (e.dest->y-dest.y)/(e.dest->x-dest.x);
+                    cout<<slope_diff<<endl;
+                    if(slope_diff>0)
+                    {
+                        p_min = min(p_min, slope_diff);
+                        vp_min = Vertex(e.dest->x,e.dest->y);
+                    }
+                    else
+                    {
+                        n_min = max(n_min, slope_diff);
+                        vn_min = Vertex(e.dest->x,e.dest->y);
+                    }
+                }
+            }
+        }
+
+        if(vp_min == default_v || vn_min == default_v || ((getAngle(dest,org,vp_min)+getAngle(dest,org,vn_min))>180))
+            continue;
+
+        inessential_diagonals.push_back(dig);
+    }
+    cout<<"inessential size = "<<inessential_diagonals.size()<<endl;
 
     cfile.close();
     efile.close();
