@@ -65,7 +65,7 @@ double lengthSquare(Vertex X, Vertex Y)
     return xDiff*xDiff + yDiff*yDiff;
 }
 
-double getAngle(Vertex A, Vertex B, Vertex C)
+double getAngleOfFirst(Vertex A, Vertex B, Vertex C)
 {
     // Square of lengths be a2, b2, c2
     double a2 = lengthSquare(B,C);
