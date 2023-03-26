@@ -89,7 +89,7 @@ print(scal_cord)
 scaling_fact = (float(scal_cord[0]) + float(scal_cord[1]) +
                 float(scal_cord2[0]) + float(scal_cord2[1]))/4
 print(scaling_fact)
-scale = float(1/scaling_fact)*100
+scale = float(1/scaling_fact)*300
 sc.close()
 
 a, b = generatePoints(scale)

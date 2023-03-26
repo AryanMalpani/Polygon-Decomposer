@@ -5,8 +5,8 @@ def generatePoints(scale):
         points = []
         edges = []
         to_plot = []
-        fv = open("dcel_edges.txt", "r")
-        fc = open("dcel_cords.txt", "r")
+        fv = open("gen_edges.txt", "r")
+        fc = open("gen_cords.txt", "r")
 
         fc_arr = fc.readlines()
         for cord in fc_arr:
@@ -81,7 +81,7 @@ def drawpoints(start, points, to_plot, lineColor="black", fillColor = "white"):
         input()
         ttl.penup()
 
-sc = open("dcel_cords.txt", "r")
+sc = open("gen_cords.txt", "r")
 sc_arr = sc.readlines()
 scal_cord = sc_arr[0].split()
 scal_cord2 = sc_arr[1].split()

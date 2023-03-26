@@ -140,7 +140,7 @@ void mp1(DCEL &p, Edge *p_start)
 
 void merging()
 {
-    initialize_dcel(mp, "dcel_cords.txt", "dcel_edges.txt");
+    initialize_dcel(mp, "gen_cords.txt", "gen_edges.txt");
     mp.save();
 
     cout << "Number of diagonals = " << p.added_diagonals.size() << endl;
@@ -245,7 +245,7 @@ void merging()
 
 int main()
 {
-    initialize_dcel(p, "cords.txt", "edges.txt");
+    initialize_dcel(p, "gen_cords.txt", "gen_edges.txt");
 
     int count = 0;
     for (auto v : p.vertices)
