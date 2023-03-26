@@ -180,6 +180,7 @@ DCEL::DCEL() {
     vertices.clear();
     faces.clear();
     n=0;
+    added_diagonals.clear();
 }
 
 /*!
@@ -438,4 +439,20 @@ void DCEL::save()
     for(auto it=edges.begin();it!=edges.end();it++)
         efile<<vertex_map[(*(it->org)).pairup()]<<" "<<vertex_map[(*(it++->dest)).pairup()]<<endl;
     efile.close();
+}
+
+/*!
+    Class For Polgyons represented as DCEL
+*/
+class Polygon{
+    public:
+        DCEL p;
+
+        //constructor
+        Polygon();
+};
+
+Polygon::Polygon() {
+    DCEL n;
+    p=n;
 }

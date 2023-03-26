@@ -141,6 +141,10 @@ void mp1(DCEL &p, Edge *p_start)
     }
 }
 
+/*!
+    THE function that performs the Merging algorithm on the decomposed DCEL p
+    and renders a new DCEL mp
+*/
 void merging()
 {
     initialize_dcel(mp, "dcel_cords.txt", "dcel_edges.txt");
