@@ -30,7 +30,7 @@ def plot_polygon(polygon, out_file_name):
 # this is just so that you can reproduce the same results
 random.seed(5)
 
-polygon = random_polygon(num_points=200)
+polygon = random_polygon(num_points=1000)
 
 gc = open("gen_cords.txt", "w")
 ge = open("gen_edges.txt", "w")

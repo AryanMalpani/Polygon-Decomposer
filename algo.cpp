@@ -140,7 +140,7 @@ void mp1(DCEL &p, Edge *p_start)
 
 void merging()
 {
-    initialize_dcel(mp, "gen_cords.txt", "gen_edges.txt");
+    initialize_dcel(mp, "dcel_cords.txt", "dcel_edges.txt");
     mp.save();
 
     cout << "Number of diagonals = " << p.added_diagonals.size() << endl;
@@ -153,6 +153,9 @@ void merging()
         Vertex *mp_org = mp.findVertex(org);
         Vertex dest = dig.second;
         Vertex *mp_dest = mp.findVertex(dest);
+
+        if(!mp_org || !mp_dest)
+            continue;
 
         double p_min = DBL_MAX;
         Vertex vp_min;
@@ -246,19 +249,6 @@ void merging()
 int main()
 {
     initialize_dcel(p, "gen_cords.txt", "gen_edges.txt");
-
-    int count = 0;
-    for (auto v : p.vertices)
-        cout << v.x << " " << v.y << endl;
-    cout << p.edges.size() << endl;
-    for (auto it = p.edges.begin(); it != p.edges.end(); it++)
-    {
-        cout << count << " " << &*it << " " << it->twin << " " << it->org << endl;
-        for (auto e : it->org->inc_edges)
-            cout << e->org << " ";
-        cout << endl
-             << count++ << " " << it->org->x << " " << it->org->y << "  face= " << it->left_face << " " << it->prev->org->x << endl;
-    }
 
     if (p.n > 3)
         mp1(p, NULL);
