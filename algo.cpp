@@ -1,9 +1,12 @@
-using namespace std;
-
 #include <bits/stdc++.h>
+
+using namespace std;
+using namespace chrono;
 
 #include "dcel.h"
 
+
+ofstream time_file;
 ofstream cfile("dcel_cords.txt");
 ofstream efile("dcel_edges.txt");
 
@@ -248,10 +251,18 @@ void merging()
 
 int main()
 {
+    time_file.open("time_file.txt", ios::app);
     initialize_dcel(p, "gen_cords.txt", "gen_edges.txt");
+
+    time_file<<p.n<<" ";
+
+    auto begin_time = high_resolution_clock::now();
+    auto initial_time = high_resolution_clock::now();
 
     if (p.n > 3)
         mp1(p, NULL);
+
+    auto decompose_time = high_resolution_clock::now();
 
     for (auto v : p.vertices)
     {
@@ -268,6 +279,20 @@ int main()
     convex_polygons.push_back(p);
 
     merging();
+
+    auto merge_time = high_resolution_clock::now();
+    auto end_time = high_resolution_clock::now();
+
+    auto duration = duration_cast<microseconds>(end_time - begin_time);
+    cout << "Total time : " << (double)(duration.count() / 1000.0) << " microseconds\n";
+    time_file<<(double)(duration.count() / 1000.0)<<" ";
+    duration = duration_cast<microseconds>(decompose_time - initial_time);
+    cout << "For decomposition : " << (double)(duration.count() / 1000.0) << " microseconds\n";
+    time_file<<(double)(duration.count() / 1000.0)<<" ";
+    duration = duration_cast<microseconds>(merge_time - decompose_time);
+    cout << "For merging : " << (double)(duration.count() / 1000.0) << " microseconds\n";
+    time_file<<(double)(duration.count() / 1000.0)<<"\n";
+
 
     cfile.close();
     efile.close();

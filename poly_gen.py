@@ -8,7 +8,9 @@ from polygenerator import (
 # these two are only for demonstration
 import matplotlib.pyplot as plt
 import random
+import sys
 
+print(sys.argv[1])
 
 def plot_polygon(polygon, out_file_name):
     plt.figure()
@@ -30,7 +32,7 @@ def plot_polygon(polygon, out_file_name):
 # this is just so that you can reproduce the same results
 random.seed(5)
 
-polygon = random_polygon(num_points=1000)
+polygon = random_polygon(num_points=int(sys.argv[1])-1)
 
 gc = open("gen_cords.txt", "w")
 ge = open("gen_edges.txt", "w")
@@ -46,7 +48,7 @@ gc.close()
 ge.write(f"{len(polygon)}     {1}\n")
 ge.close()
 
-print(polygon)
+# print(polygon)
 # [(0.752691110661913, 0.948158571633034), (0.7790276993942304, 0.05437135270534656), ..., (0.633385213909564, 0.7365967958574935)]
 
-plot_polygon(polygon, "random_polygon.png")
+# plot_polygon(polygon, "random_polygon.png")
