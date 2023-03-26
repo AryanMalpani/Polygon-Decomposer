@@ -256,7 +256,7 @@ void merging()
 int main()
 {
     time_file.open("time_file.txt", ios::app);
-    initialize_dcel(p, "gen_cords.txt", "gen_edges.txt");
+    initialize_dcel(p, "cords.txt", "edges.txt");
 
     time_file<<p.n<<" ";
 
